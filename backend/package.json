@@ -1,0 +1,10 @@
+{
+  "name": "aeterna-ai-backend",
+  "version": "1.0.0",
+  "description": "Backend for Aeterna AI",
+  "scripts": {
+    "dev": "venv\\Scripts\\python main.py"
+  },
+  "author": "",
+  "license": "ISC"
+}

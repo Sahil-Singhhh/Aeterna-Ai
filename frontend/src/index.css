@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glassmorphism {
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.08);
+    background-color: rgba(13,17,23,0.7);
+  }
+  .glow-effect {
+    box-shadow: 0 0 20px rgba(0,242,255,0.15);
+  }
+  .pulse-text {
+    animation: textPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+@keyframes textPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+body {
+  @apply bg-background-primary text-white font-sans;
+  margin: 0;
+  min-height: 100vh;
+}
