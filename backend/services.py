@@ -2,14 +2,77 @@ from schemas import LifestyleInput, TrajectoryPoint
 from typing import List, Tuple
 
 def calculate_health_score(lifestyle: LifestyleInput) -> float:
-    # FinalScore = min(100, ((S/8*30)+(W/10000*25)+(H/3.5*15)+((11-St)/10*30)))
+    # Adding age-adaptive logic based on Neural Profile
+    age = getattr(lifestyle, 'age', 30)
+    gender = getattr(lifestyle, 'gender', 'Other')
+    weight = getattr(lifestyle, 'weight', 70.0)
+    height = getattr(lifestyle, 'height', 170.0)
+    conditions = getattr(lifestyle, 'conditions', [])
+    
     S = lifestyle.sleep_hours
     W = lifestyle.steps_daily
     H = lifestyle.hydration_liters
     St = lifestyle.stress_level
     
-    score = (S / 8.0 * 30) + (W / 10000.0 * 25) + (H / 3.5 * 15) + ((11 - St) / 10.0 * 30)
-    return min(100.0, max(0.0, score))
+    # 1. Age-Decay Curve: Base Vitality starts at 100 - (Age * 0.25)
+    base_vitality = 100.0 - (age * 0.25)
+    
+    # Target calculations
+    target_W = 10000.0
+    # Gender Variance for Hydration
+    if gender == 'Male':
+        target_H = 3.7
+    elif gender == 'Female':
+        target_H = 2.7
+    else:
+        target_H = 3.2
+        
+    target_S = 7.5
+    if age < 18:
+        target_W = 12000.0
+        target_S = 10.0
+    elif age > 60:
+        target_W = 6000.0
+        target_S = 8.0
+        
+    # Calculate Component Points out of their respective weights (30, 25, 15, 30)
+    s_points = min(30.0, (S / target_S * 30.0))
+    # Older age (45+) Recovery Penalty
+    if age >= 45 and S < 6.0:
+        deficit = (target_S - S) / target_S * 30.0
+        s_points = max(0.0, 30.0 - (deficit * 1.5))
+        
+    w_points = min(25.0, (W / target_W * 25.0))
+    # Weight/Height Impact (BMI) Cost of inactivity
+    height_m = height / 100.0
+    bmi = weight / (height_m * height_m) if height_m > 0 else 22.0
+    if not (18.5 <= bmi <= 25.0):
+        if W < 4000:
+            w_points = w_points * 0.5 # Vitality drops 2x faster
+            
+    h_points = min(15.0, (H / target_H * 15.0))
+    st_points = max(0.0, min(30.0, ((11.0 - St) / 10.0 * 30.0)))
+    
+    # Hard-Caps: Diabetes
+    if 'Diabetes' in conditions and H < 2.0:
+        h_points = max(0.0, h_points - 10.0) # Immediate System Dehydration penalty
+        
+    # Hard-Caps: Hypertension
+    if 'Hypertension' in conditions and St >= 8:
+        st_points = max(0.0, st_points - 15.0) # Red Alert drop
+        
+    score = s_points + w_points + h_points + st_points
+    # Apply proportional reduction based on age-decay base (so max is base_vitality)
+    score = score * (base_vitality / 100.0)
+    
+    # Absolute Caps
+    max_cap = base_vitality
+    if 'Diabetes' in conditions and age >= 60:
+        max_cap = min(max_cap, 80.0)
+    elif age > 70:
+        max_cap = min(max_cap, 90.0)
+        
+    return min(max_cap, max(0.0, score))
 
 def generate_insights(lifestyle: LifestyleInput, score: float) -> List[str]:
     insights = []
@@ -39,10 +102,19 @@ def generate_insights(lifestyle: LifestyleInput, score: float) -> List[str]:
 def calculate_trajectory(current_score: float, age: float, lifestyle: LifestyleInput, months: int) -> Tuple[List[TrajectoryPoint], float, float]:
     timeline = []
     
+    gender = getattr(lifestyle, 'gender', 'Other')
+    weight = getattr(lifestyle, 'weight', 70.0)
+    height = getattr(lifestyle, 'height', 170.0)
+    conditions = getattr(lifestyle, 'conditions', [])
+    
     # Calculate a rough delta from optimal based on current lifestyle vs optimal baseline
     optimal_score = calculate_health_score(
         LifestyleInput(
             age=age,
+            gender=gender,
+            weight=weight,
+            height=height,
+            conditions=conditions,
             sleep_hours=8,
             steps_daily=10000,
             hydration_liters=3.5,
@@ -50,12 +122,22 @@ def calculate_trajectory(current_score: float, age: float, lifestyle: LifestyleI
         )
     )
     
+    # Calculate dynamic max cap for simulation ceiling
+    base_vitality = 100.0 - (age * 0.25)
+    max_cap = base_vitality
+    if 'Diabetes' in conditions and age >= 60:
+        max_cap = min(max_cap, 80.0)
+    elif age > 70:
+        max_cap = min(max_cap, 90.0)
+    
+    # Bound the optimal growth ceiling safely
+    ceiling = min(98.0, max_cap)
+    
     # Current path: score * (1 - (age * 0.002)) over 60 months
     # Let's say decay_factor is calculated per month
     month_decay = (age * 0.002) / 60.0 # simple linear distribution matching formula description
     
-    # Optimized path: score * (1 + lifestyle_delta * 0.005) capped at 98
-    # "growth_factor with saturation cap at 98%"
+    # Optimized path: score * (1 + lifestyle_delta * 0.005) capped at dynamic ceiling
     # Delta score ratio
     lifestyle_delta = optimal_score - current_score
     pulse_growth = (lifestyle_delta * 0.005) / 60.0 if lifestyle_delta > 0 else 0
@@ -73,8 +155,8 @@ def calculate_trajectory(current_score: float, age: float, lifestyle: LifestyleI
         # apply decay for next month
         c_score = max(0.0, c_score * (1 - month_decay))
         
-        # apply growth for next month, capped at 98
-        o_score = min(98.0, o_score * (1 + pulse_growth))
+        # apply growth for next month, capped at dynamic ceiling
+        o_score = min(ceiling, o_score * (1 + pulse_growth))
         
     final_current = timeline[-1].current_path_score
     final_optimized = timeline[-1].optimized_path_score

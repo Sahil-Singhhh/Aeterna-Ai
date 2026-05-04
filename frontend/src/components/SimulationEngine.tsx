@@ -5,16 +5,26 @@ import { updateLifestyle } from '../store/slices/lifestyleSlice';
 import type { LifestyleState } from '../store/slices/lifestyleSlice';
 import { fetchPrediction } from '../store/slices/predictionSlice';
 import { Sliders, Activity, Moon, Droplets } from 'lucide-react';
+import { useProfile } from '../context/ProfileContext';
 
 const SimulationEngine: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const lifestyle = useSelector((state: RootState) => state.lifestyle);
   const user = useSelector((state: RootState) => state.auth.user);
+  const { profile } = useProfile();
 
   useEffect(() => {
     // Initial fetch
     if (user?.age) {
-        dispatch(fetchPrediction({ age: user.age, lifestyle, months: 60 }));
+        dispatch(fetchPrediction({ 
+            age: user.age, 
+            gender: profile.gender,
+            weight: Number(profile.weight) || 70,
+            height: Number(profile.height) || 170,
+            conditions: profile.conditions,
+            lifestyle, 
+            months: 60 
+        }));
     }
     // eslint-disable-next-line
   }, []);
@@ -27,6 +37,10 @@ const SimulationEngine: React.FC = () => {
     if (user?.age) {
         dispatch(fetchPrediction({ 
             age: user.age, 
+            gender: profile.gender,
+            weight: Number(profile.weight) || 70,
+            height: Number(profile.height) || 170,
+            conditions: profile.conditions,
             lifestyle: { ...lifestyle, [name]: parseFloat(value) }, 
             months: 60 
         }));

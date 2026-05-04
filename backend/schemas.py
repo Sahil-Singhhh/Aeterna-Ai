@@ -3,6 +3,10 @@ from typing import List, Optional
 
 class LifestyleInput(BaseModel):
     age: float = Field(..., ge=0, le=120)
+    gender: Optional[str] = "Other"
+    weight: Optional[float] = 70.0
+    height: Optional[float] = 170.0
+    conditions: Optional[List[str]] = []
     sleep_hours: float = Field(..., ge=0, le=24)
     steps_daily: int = Field(..., ge=0)
     hydration_liters: float = Field(..., ge=0, le=10)

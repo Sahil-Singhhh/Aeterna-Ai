@@ -1,22 +1,7 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-import type { LifestyleState } from './lifestyleSlice';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
-export interface TrajectoryPoint {
-  month: number;
-  current_path_score: number;
-  optimized_path_score: number;
-}
-
-interface PredictionState {
-  timeline: TrajectoryPoint[];
-  current_score: number;
-  optimized_score: number;
-  loading: boolean;
-  error: string | null;
-}
-
-const initialState: PredictionState = {
+const initialState = {
   timeline: [],
   current_score: 0,
   optimized_score: 0,
@@ -25,21 +10,13 @@ const initialState: PredictionState = {
 };
 
 export const fetchPrediction = createAsyncThunk(
-  'prediction/fetchPrediction',
-  async (params: { 
-    age: number; 
-    gender?: string;
-    weight?: number;
-    height?: number;
-    conditions?: string[];
-    lifestyle: LifestyleState; 
-    months: number 
-  }) => {
+  "prediction/fetchPrediction",
+  async (params) => {
     const payload = {
       months: params.months,
       lifestyle: {
         age: params.age,
-        gender: params.gender || 'Other',
+        gender: params.gender || "Other",
         weight: params.weight || 70,
         height: params.height || 170,
         conditions: params.conditions || [],
@@ -49,16 +26,18 @@ export const fetchPrediction = createAsyncThunk(
         stress_level: params.lifestyle.stress_level,
       },
     };
-    
     // Fallback to absolute URL if proxy isn't setup.
     // For production, maybe use relative if hosted together.
-    const response = await axios.post('http://localhost:8000/api/v1/predict-trajectory', payload);
+    const response = await axios.post(
+      "http://localhost:8000/api/v1/predict-trajectory",
+      payload,
+    );
     return response.data;
-  }
+  },
 );
 
 export const predictionSlice = createSlice({
-  name: 'prediction',
+  name: "prediction",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
@@ -75,7 +54,7 @@ export const predictionSlice = createSlice({
       })
       .addCase(fetchPrediction.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to fetch prediction';
+        state.error = action.error.message || "Failed to fetch prediction";
       });
   },
 });

@@ -3,8 +3,18 @@
   "version": "1.0.0",
   "description": "Backend for Aeterna AI",
   "scripts": {
-    "dev": "venv\\Scripts\\python main.py"
+    "dev": "node server.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "main": "index.js",
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.6.1"
+  }
 }

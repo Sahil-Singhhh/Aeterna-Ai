@@ -7,8 +7,10 @@ export type MedicalCondition = 'Diabetes' | 'Thyroid' | 'Hypertension' | 'None';
 
 export interface UserProfile {
   age: number | '';
+  gender: 'Male' | 'Female' | 'Other' | '';
   weight: number | ''; // in kg
   height: number | ''; // in cm
+  activityLevel: 'Sedentary' | 'Light' | 'Moderate' | 'Active' | 'Very Active' | '';
   conditions: MedicalCondition[];
   medications: string;
 }
@@ -21,8 +23,10 @@ interface ProfileContextType {
 
 const defaultProfile: UserProfile = {
   age: '',
+  gender: '',
   weight: '',
   height: '',
+  activityLevel: '',
   conditions: ['None'],
   medications: '',
 };
@@ -55,7 +59,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [profile, emailKey]);
 
-  const isProfileComplete = profile.age !== '' && profile.weight !== '' && profile.height !== '';
+  const isProfileComplete = profile.age !== '' && profile.gender !== '' && profile.weight !== '' && profile.height !== '' && profile.activityLevel !== '';
 
   return (
     <ProfileContext.Provider value={{ profile, setProfile, isProfileComplete }}>

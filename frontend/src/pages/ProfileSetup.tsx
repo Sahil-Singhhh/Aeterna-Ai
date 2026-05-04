@@ -29,7 +29,7 @@ export default function ProfileSetup() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (profile.age !== '' && profile.weight !== '' && profile.height !== '') {
+    if (profile.age !== '' && profile.gender !== '' && profile.weight !== '' && profile.height !== '' && profile.activityLevel !== '') {
       dispatch(setUser({ age: Number(profile.age) })); // Sync with existing redux state for engine
       navigate('/');
     }
@@ -62,9 +62,9 @@ export default function ProfileSetup() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs uppercase font-mono text-text-muted mb-2">Age (yrs)</label>
+              <label className="block text-xs uppercase font-mono text-text-muted mb-2">Age</label>
               <input 
                 type="number" 
                 required
@@ -73,6 +73,20 @@ export default function ProfileSetup() {
                 onChange={e => setProfile(p => ({ ...p, age: e.target.value ? Number(e.target.value) : '' }))}
                 className="w-full bg-[#0D1117] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00F2FF]/50 transition-colors"
               />
+            </div>
+            <div>
+              <label className="block text-xs uppercase font-mono text-text-muted mb-2">Gender</label>
+              <select 
+                required
+                value={profile.gender}
+                onChange={e => setProfile(p => ({ ...p, gender: e.target.value as any }))}
+                className="w-full bg-[#0D1117] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00F2FF]/50 transition-colors appearance-none"
+              >
+                <option value="" disabled>Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
             <div>
               <label className="block text-xs uppercase font-mono text-text-muted mb-2">Weight (kg)</label>
@@ -96,6 +110,23 @@ export default function ProfileSetup() {
                 className="w-full bg-[#0D1117] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00F2FF]/50 transition-colors"
               />
             </div>
+          </div>
+
+          <div>
+             <label className="block text-xs uppercase font-mono text-text-muted mb-2">Activity Level</label>
+             <select 
+                required
+                value={profile.activityLevel}
+                onChange={e => setProfile(p => ({ ...p, activityLevel: e.target.value as any }))}
+                className="w-full bg-[#0D1117] border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#00F2FF]/50 transition-colors appearance-none"
+              >
+                <option value="" disabled>Select Activity Level</option>
+                <option value="Sedentary">Sedentary (Little to no exercise)</option>
+                <option value="Light">Light (Exercise 1-3 days/week)</option>
+                <option value="Moderate">Moderate (Exercise 3-5 days/week)</option>
+                <option value="Active">Active (Exercise 6-7 days/week)</option>
+                <option value="Very Active">Very Active (Hard physical job)</option>
+              </select>
           </div>
 
           <div>

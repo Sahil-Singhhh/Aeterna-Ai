@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { login } from '../store/slices/authSlice';
-import { User, Lock, Mail, ArrowRight, Loader } from 'lucide-react';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { login } from "../store/slices/authSlice";
+import { User, Lock, Mail, ArrowRight, Loader } from "lucide-react";
 
 const DNAHelix = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 flex justify-center opacity-20">
@@ -22,7 +22,7 @@ const DNAHelix = () => (
           duration: 10,
           repeat: Infinity,
           ease: "linear",
-          delay: i * 0.2
+          delay: i * 0.2,
         }}
       />
     ))}
@@ -30,20 +30,19 @@ const DNAHelix = () => (
 );
 
 export default function Signup() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = (e) => {
     e.preventDefault();
-    setError('');
-    
+    setError("");
     if (!name || !email || !password) {
-      setError('All biometric data fields required.');
+      setError("All biometric data fields required.");
       return;
     }
 
@@ -51,60 +50,69 @@ export default function Signup() {
 
     // Simulate network delay
     setTimeout(() => {
-      const existingUsers = JSON.parse(localStorage.getItem('aeterna_users') || '[]');
-      const userExists = existingUsers.find((u: any) => u.email === email);
+      const existingUsers = JSON.parse(
+        localStorage.getItem("aeterna_users") || "[]",
+      );
+      const userExists = existingUsers.find((u) => u.email === email);
       if (userExists) {
-        setError('Bio-signature already registered for this email.');
+        setError("Bio-signature already registered for this email.");
         setLoading(false);
         return;
       }
-      
       const newUser = {
         name,
         email,
         password,
-        memberSince: new Date().toISOString().split('T')[0],
-        age: 30
+        memberSince: new Date().toISOString().split("T")[0],
+        age: 30,
       };
       existingUsers.push(newUser);
-      localStorage.setItem('aeterna_users', JSON.stringify(existingUsers));
+      localStorage.setItem("aeterna_users", JSON.stringify(existingUsers));
 
       // Direct signup creates user & logs in
-      dispatch(login({
-        name,
-        email,
-        memberSince: newUser.memberSince,
-        age: 30 // Will be overwritten in onboarding
-      }));
+      dispatch(
+        login({
+          name,
+          email,
+          memberSince: newUser.memberSince,
+          age: 30, // Will be overwritten in onboarding
+        }),
+      );
       // New User logic -> MUST show onboarding
-      navigate('/profile');
+      navigate("/profile");
     }, 1500);
   };
 
   return (
     <div className="min-h-screen bg-[#05070A] text-white flex items-center justify-center relative overflow-hidden font-sans">
       <DNAHelix />
-      
+
       {/* Huge Background Glows */}
-      <motion.div 
+      <motion.div
         animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.12, 0.1] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="fixed top-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#7000FF] blur-[150px] rounded-full pointer-events-none" 
-      />
-      <motion.div 
-        animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.15, 0.1] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="fixed bottom-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#00F2FF] blur-[150px] rounded-full pointer-events-none" 
+        className="fixed top-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#7000FF] blur-[150px] rounded-full pointer-events-none"
       />
 
-      <motion.div 
+      <motion.div
+        animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.15, 0.1] }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1,
+        }}
+        className="fixed bottom-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#00F2FF] blur-[150px] rounded-full pointer-events-none"
+      />
+
+      <motion.div
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+        transition={{ type: "spring", stiffness: 100, damping: 15 }}
         className="glassmorphism p-10 md:p-14 rounded-3xl z-10 w-full max-w-md border border-white/10 shadow-[0_0_50px_rgba(112,0,255,0.05)]"
       >
         <div className="text-center mb-10 border-b border-white/5 pb-8">
-           <h2 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#00F2FF] to-white">
+          <h2 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#00F2FF] to-white">
             Register Bio-Signature
           </h2>
           <p className="text-[#7000FF] text-xs uppercase tracking-[0.2em] font-mono mt-2 opacity-80">
@@ -166,13 +174,21 @@ export default function Signup() {
             {loading ? (
               <Loader className="w-5 h-5 animate-spin" />
             ) : (
-              <>Register Identity <ArrowRight className="w-4 h-4" /></>
+              <>
+                Register Identity <ArrowRight className="w-4 h-4" />
+              </>
             )}
           </button>
         </form>
 
         <p className="text-center mt-8 text-sm text-[#8B949E]">
-          Already hold a Link? <Link to="/login" className="text-[#7000FF] hover:text-white transition-colors underline underline-offset-4 pointer">Initiate Uplink</Link>
+          Already hold a Link?{" "}
+          <Link
+            to="/login"
+            className="text-[#7000FF] hover:text-white transition-colors underline underline-offset-4 pointer"
+          >
+            Initiate Uplink
+          </Link>
         </p>
       </motion.div>
     </div>

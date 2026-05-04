@@ -8,6 +8,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Save } from 'lucide-react';
 import type { RootState, AppDispatch } from '../store/store';
 import { fetchPrediction } from '../store/slices/predictionSlice';
+import { useProfile } from '../context/ProfileContext';
+import { calculateCalories } from '../utils/healthCalculator';
+import { Flame } from 'lucide-react';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -39,12 +42,30 @@ export default function Dashboard() {
   const user = useSelector((state: RootState) => state.auth.user);
   const emailKey = user?.email ? `_${user.email}` : '';
 
+  const { profile } = useProfile();
+  
+  const { bmr, tdee } = calculateCalories(
+    Number(profile.age),
+    Number(profile.weight),
+    Number(profile.height),
+    profile.gender,
+    profile.activityLevel
+  );
+
   useEffect(() => {
     setMounted(true);
     if (user?.age) {
-        dispatch(fetchPrediction({ age: user.age, lifestyle, months: 60 }));
+        dispatch(fetchPrediction({ 
+            age: user.age, 
+            gender: profile.gender,
+            weight: Number(profile.weight) || 70,
+            height: Number(profile.height) || 170,
+            conditions: profile.conditions,
+            lifestyle, 
+            months: 60 
+        }));
     }
-  }, [dispatch, user, lifestyle]);
+  }, [dispatch, user, lifestyle, profile.gender, profile.weight, profile.height, profile.conditions]);
 
   useEffect(() => {
     // Check if logged today for this specific user
@@ -129,10 +150,30 @@ export default function Dashboard() {
         <main className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column - Real-time metrics and inputs */}
           <motion.div variants={itemVariants} className="lg:col-span-4 flex flex-col gap-8">
-            <div className="flex justify-center w-full">
+            <div className="flex flex-col items-center justify-center w-full">
               <LongevityClock score={prediction.optimized_score || prediction.current_score} />
+              <p className="text-[10px] text-[#00F2FF]/70 mt-2 text-center font-mono uppercase tracking-widest bg-[#00F2FF]/5 px-3 py-1 rounded-full border border-[#00F2FF]/20 shadow-[0_0_10px_rgba(0,242,255,0.1)]">
+                Calibrated for {profile.age}yo {profile.gender} with {profile.conditions.join(', ')}
+              </p>
             </div>
             <SimulationEngine />
+            
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              className="glassmorphism p-6 rounded-2xl w-full border-t border-t-[#FF4500]/30 relative overflow-hidden group shadow-[0_0_15px_rgba(255,69,0,0.05)] hover:shadow-[0_0_25px_rgba(255,69,0,0.15)] transition-all"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-[#FF4500]/5 to-transparent pointer-events-none" />
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#FF4500] opacity-10 rounded-full blur-xl group-hover:opacity-20 transition-opacity" />
+              <h4 className="text-xs text-[#FF4500] font-bold tracking-widest uppercase mb-2 flex items-center gap-2">
+                <Flame className="w-4 h-4" /> Metabolic Maintenance
+              </h4>
+              <div className="text-3xl font-light text-white mb-1 tracking-tight">
+                {tdee > 0 ? tdee.toLocaleString() : '--'} <span className="text-lg text-text-muted">kcal</span>
+              </div>
+              <p className="text-xs text-text-muted/80 leading-relaxed">
+                Your Daily Calorie Maintenance Target based on BMR ({bmr ? bmr.toLocaleString() : '--'} kcal) and Activity Level.
+              </p>
+            </motion.div>
           </motion.div>
 
           {/* Right Column - Deep analysis and multi-dimensional trajectory */}
